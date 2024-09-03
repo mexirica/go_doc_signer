@@ -6,8 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
-	"io"
+	"github.com/mexirica/go_doc_signer/internal/utils"
 	"mime/multipart"
 )
 
@@ -35,7 +34,7 @@ func InitializeKeys() {
 //	}
 //	fmt.Println(signature)
 func SignDocument(doc *multipart.FileHeader, privateKey *rsa.PrivateKey) (string, error) {
-	docBytes, err := convertFileToBytes(doc)
+	docBytes, err := utils.ConvertFileToBytes(doc)
 	hash := sha256.Sum256(docBytes)
 	signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, hash[:])
 	if err != nil {
@@ -62,7 +61,7 @@ func SignDocument(doc *multipart.FileHeader, privateKey *rsa.PrivateKey) (string
 //	}
 //	fmt.Println(valid)
 func VerifySignature(file *multipart.FileHeader, signatureStr string, publicKey *rsa.PublicKey) bool {
-	bytesdoc, err := convertFileToBytes(file)
+	bytesdoc, err := utils.ConvertFileToBytes(file)
 	hash := sha256.Sum256(bytesdoc)
 	signature, err := base64.StdEncoding.DecodeString(signatureStr)
 	if err != nil {
@@ -70,40 +69,4 @@ func VerifySignature(file *multipart.FileHeader, signatureStr string, publicKey 
 	}
 	err = rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, hash[:], signature)
 	return err == nil
-}
-
-// ConvertFileToBytes Converts a multipart FileHeader to bytes.
-//
-// It takes a pointer to a multipart.FileHeader as input and returns a slice of bytes
-// representing the entire contents of the file, along with an error if any occurs during
-// the conversion process.
-//
-// The function reads the entire file into memory, so it may be inefficient for very large files.
-//
-// Example usage:
-//
-//	fileHeader, err := formFile("fileField")
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//
-//	data, err := convertFileToBytes(fileHeader)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-func convertFileToBytes(file *multipart.FileHeader) ([]byte, error) {
-	buffer := make([]byte, file.Size)
-
-	f, err := file.Open()
-	if err != nil {
-		return nil, fmt.Errorf("Error to open the file: %w", err)
-	}
-	defer f.Close()
-
-	_, err = io.ReadFull(f, buffer)
-	if err != nil {
-		return nil, fmt.Errorf("Error to read the file: %w", err)
-	}
-
-	return buffer, nil
 }
