@@ -72,6 +72,25 @@ func VerifySignature(file *multipart.FileHeader, signatureStr string, publicKey 
 	return err == nil
 }
 
+// ConvertFileToBytes Converts a multipart FileHeader to bytes.
+//
+// It takes a pointer to a multipart.FileHeader as input and returns a slice of bytes
+// representing the entire contents of the file, along with an error if any occurs during
+// the conversion process.
+//
+// The function reads the entire file into memory, so it may be inefficient for very large files.
+//
+// Example usage:
+//
+//	fileHeader, err := formFile("fileField")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	data, err := convertFileToBytes(fileHeader)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
 func convertFileToBytes(file *multipart.FileHeader) ([]byte, error) {
 	buffer := make([]byte, file.Size)
 
